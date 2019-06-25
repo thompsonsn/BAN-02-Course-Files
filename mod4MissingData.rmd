@@ -1,0 +1,106 @@
+---
+output:
+  word_document: default
+  html_document: default
+---
+# Stephanie Thompson
+
+## Module 4
+
+### Missing data
+
+
+```{r}
+library(tidyverse)
+library(VIM)
+library(mice)
+```
+
+```{r}
+library(readr)
+class_grades <- read_csv("C:/Users/thompsonsn/Downloads/class-grades.csv")
+View(class_grades)
+```
+
+### 1. There are several missing data fields scattered throughout the dataset. There are are 11 missing data fields.
+
+```{r}
+str(class_grades)
+summary(class_grades)
+```
+
+### 2.
+
+```{r}
+vim_plot = aggr(class_grades, numbers = TRUE, prop = c(TRUE, FALSE), cex.axis=.7)
+```
+
+### There are no distinct patterns of missingness. There is one student missing two columns of data, all others either only miss one or have no missing data.
+
+
+### 3.
+
+```{r}
+class = class_grades
+```
+
+```{r}
+class = class %>%
+  drop_na(Assignment) %>%
+  drop_na(Tutorial) %>%
+  drop_na(Midterm) %>%
+  drop_na(TakeHome) %>%
+  drop_na(Final)
+```
+
+### There are now 89 observations and 6 variables.
+
+
+### 4.
+
+```{r}
+class2 = class_grades
+```
+
+```{r}
+class2 = class2 %>% select(-Tutorial) 
+vim_plot = aggr(class2, numbers = TRUE, prop = c(TRUE, FALSE),cex.axis=.7)
+```
+
+```{r}
+class2 = class2 %>% select(-Midterm) 
+vim_plot = aggr(class2, numbers = TRUE, prop = c(TRUE, FALSE),cex.axis=.7)
+```
+
+```{r}
+class2 = class2 %>% select(-TakeHome) 
+vim_plot = aggr(class2, numbers = TRUE, prop = c(TRUE, FALSE),cex.axis=.7)
+```
+
+```{r}
+class2 = class2 %>% select(-Final) 
+vim_plot = aggr(class2, numbers = TRUE, prop = c(TRUE, FALSE),cex.axis=.7)
+```
+
+### There are now only two columns in the Class2 dataset after completing colimn wise deletions.
+
+
+### 5. In this scenario, because the missingness was scattered across several columns, it is better to do a row wise deletion. By deleting the columns, there is now too little data left to make any predictions about students grades and their final exam.
+
+
+### 6. 
+```{r}
+grades = class_grades
+```
+
+
+```{r}
+grades_imp  =  mice(grades,  m=1,  method  =  "pmm",  seed  =  12345)
+summary(grades_imp) 
+densityplot(grades_imp)
+grades_complete  =  complete(grades_imp)
+summary(grades_complete)
+
+```
+
+###  7. If missing data is not dealt with prior to analyzing and running computations on your data, your results may be skewed. If a column is a huge amount of missing data a column deletion will help. If the missingness is scattered amongst several columns then typically row deletion will work. Imputing means into missing data can be beneficial if you are certain the mean is an accurate representation of the data. For instance say this professor has used this same midterm for years and the overall average matches this years average, it may be safe to impute the average. But say this is the first year he is using this version of the Take Home test, and there are only a couple missing variables, he may consider just doing a row wise deletion. 

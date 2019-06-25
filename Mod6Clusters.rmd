@@ -1,0 +1,172 @@
+---
+output:
+  word_document: default
+  html_document: default
+---
+# Stephanie Thompson
+
+## Module 6 Clusters
+
+
+```{r}
+library(tidyverse)
+library(cluster)
+library(dendextend)
+library(factoextra)
+```
+
+```{r}
+library(readr)
+trucks <- read_csv("C:/Users/thompsonsn/Downloads/trucks.csv")
+View(trucks)
+```
+
+
+
+### 1. You can see two distinct clusters. There is a cluster from roughly 25mph-75mph, and then another cluster from 125mph-225mph. 
+```{r}
+ggplot(trucks, aes(x=Distance, y=Speeding)) +
+  geom_point()
+```
+
+
+
+### 2.
+
+```{r}
+trucks2 <- trucks %>% select("Distance", "Speeding")
+```
+
+```{r}
+trucks_scaled = as.data.frame(scale(trucks2))
+summary(trucks_scaled)
+```
+
+
+### 3.
+
+```{r}
+clusters1 = kmeans(trucks_scaled, 2)
+```
+
+```{r}
+set.seed(1234)
+fviz_cluster(clusters1, trucks_scaled)
+```
+
+### These clusters look the same as the ones I noticed when i just generally plotted the two variables. Visually the clusters look correct, the only one that might be a possible cluster is the top half of the blue cluster, only because the bottom half is concentrated and the top is not.Overall it does look like clusters I would have picked out.
+
+
+### 4.
+
+```{r}
+set.seed(123)
+fviz_nbclust(trucks_scaled, kmeans, method = "wss")
+```
+
+```{r}
+set.seed(123)
+fviz_nbclust(trucks_scaled, kmeans, method = "silhouette")
+```
+
+### The first method is not as clear because the graph does not go upp and down, however it looks like 4 might be the optimal number. In the second method the optimal number of clusters is 4. Both methods produced similar results. That is more than I gathered just by visually looking at the graphs. However, the clusters would both probably be broken into two clusters each making 4 total.
+
+
+### 5.
+
+```{r}
+clusters2 = kmeans(trucks_scaled, 4)
+```
+
+
+```{r}
+set.seed(1234)
+fviz_cluster(clusters2, trucks_scaled)
+```
+
+### 6. The clusters do not intuitively look right. The red cluster seems very spread out and across what should be two separate clusters. I suppose it is more clustered but the speed than by the distance. The other three clusters seem like they would be OK, nothing visually off about them. 
+
+
+## Wine Dataset
+
+```{r}
+library(readr)
+wineprice <- read_csv("C:/Users/thompsonsn/Downloads/wineprice.csv")
+View(wineprice)
+```
+
+```{r}
+wine2 <- wineprice %>% select("Price", "WinterRain", "AGST", "HarvestRain", "Age")
+```
+
+```{r}
+wine_scaled = as.data.frame(scale(wine2))
+summary(wine_scaled)
+```
+
+### 7.
+
+```{r}
+set.seed(123)
+fviz_nbclust(wine_scaled, kmeans, method = "wss")
+```
+
+
+```{r}
+set.seed(123)
+fviz_nbclust(wine_scaled, kmeans, method = "silhouette")
+```
+
+
+### The first method looks like the optimal amount of clusters is between 4 and 6. The second method says 5 is the optimal amount of clusters. They are both similar and do not show any major discrepencies. I would most likely go with 5 clusters. 
+
+
+### 8. Here you said use the optimal clster in Task 4 but I am assuming you meant 7 so I will use 5 clusters. 
+
+```{r}
+clusters3 = kmeans(wine_scaled, 5)
+```
+
+
+```{r}
+set.seed(1234)
+fviz_cluster(clusters3, wine_scaled)
+```
+
+
+### 9.
+
+```{r}
+m = c("average", "single", "complete", "ward")
+names(m) = c("average", "single", "complete", "ward")
+ac = function(x) { agnes(wine_scaled, method = x)$ac}
+map_dbl(m,ac)
+```
+
+
+```{r}
+hc = agnes(wine_scaled, method = "ward")
+pltree(hc, cex=.6, hang=-1, main= "Agglomerative Dendrogram")
+```
+
+
+```{r}
+plot(hc, cex.axis=.5)
+rect.hclust(hc, k=5, border =2:6)
+```
+
+
+
+### 10.
+
+```{r}
+hc2=diana(wine_scaled)
+pltree(hc2, cex=.6, hang=-1, main= "Divisive Dendogram")
+```
+
+```{r}
+plot(hc2, cex.axis=.5)
+rect.hclust(hc2, k=5, border =2:6)
+```
+
+### The divisive coefficient is .73 and the agglomerate coefficient is .81

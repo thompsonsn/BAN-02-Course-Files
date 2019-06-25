@@ -1,0 +1,126 @@
+# Stephanie Thompson
+
+## Module 4
+
+### Classification Trees
+
+```{r}
+library(tidyverse)
+library(caret)
+library(rpart)
+library(rattle)
+library(RColorBrewer)
+```
+
+```{r}
+library(readr)
+Blood <- read_csv("C:/Users/thompsonsn/Downloads/Blood.csv")
+View(Blood)
+```
+
+```{r}
+library(readr)
+parole <- read_csv("C:/Users/thompsonsn/Downloads/parole.csv")
+View(parole)
+```
+
+```{r}
+parolee = parole
+```
+
+
+```{r}
+parolee= parolee %>% mutate(male = as_factor(as.character(male))) %>%
+mutate(male= fct_recode(male,
+"female" = "0",
+"male" = "1"))
+parolee= parolee %>% mutate(race = as_factor(as.character(race))) %>%
+mutate(race= fct_recode(race, "NotWhite" = "2",
+"White" = "1"))
+```
+
+
+```{r}
+parolee= parolee %>% mutate(state = as_factor(as.character(state))) %>%
+mutate(state= fct_recode(state,
+"Other" = "1",
+"Kentucky" = "2", "Louisiana" = "3",
+"Virginia" = "4"))
+parolee= parolee %>% mutate(multiple.offenses = as_factor(as.character(multiple.offenses))) %>%
+mutate(multiple.offenses= fct_recode(multiple.offenses, "NotMultiple" = "0",
+"Multiple Offenses" = "1"))
+parolee= parolee %>% mutate(crime = as_factor(as.character(crime))) %>%
+mutate(crime= fct_recode(crime,
+"Other" = "1",
+"larceny" = "2", "drug-related" = "3",
+"driving-related" = "4"))
+parolee= parolee %>% mutate(violator = as_factor(as.character(violator))) %>%
+mutate(violator= fct_recode(violator, "NoViolation" = "0",
+"Violation" = "1"))
+
+```
+
+```{r}
+str(parolee)
+```
+
+### 1.
+
+```{r}
+set.seed(12345)
+train.rows = createDataPartition(y = parolee$violator, p=.7, list= FALSE)
+train= parolee[train.rows,]
+test= parolee[-train.rows,]
+
+```
+
+
+
+### 2.
+
+```{r}
+tree1 = rpart(violator ~., train, method = "class")
+fancyRpartPlot(tree1)
+```
+
+### 3. If we wanted to estimate the outcome of a 40 year- old parolee from Louisiana who served 5 years, I would start at the top of the tree. Is the parolee from KY or VA, no so go right. Second tier, is the he younger than 43, yes so go left. Third tier, he did serve more than 2.6 years so left for yes. The outcome is No, he will not violate his parole. There is a 71% chance this is an accurate assumption.
+
+
+### 4.
+
+```{r}
+plotcp(tree1)
+```
+
+```{r}
+printcp(tree1)
+```
+### The cp for this tree is .054545
+
+
+
+
+### 5.
+
+```{r}
+tree2 = prune(tree1, cp=tree1$cptable[which.min(tree1$cptable[,"xerror"]), "CP"])
+table(train$violator)
+```
+
+### No violations is the majority with 418, while the parolees with violations is only 55.
+
+
+
+### 6. 
+
+```{r}
+predtree = predict(tree1, train, type = "class")
+confusionMatrix(predtree,train$violator,positive = "Yes")
+```
+
+### 7. 
+```{r}
+testpred =predict(tree1, newdata = test, type = "class")
+confusionMatrix(testpred, test$violator, positive = "Yes")
+```
+
